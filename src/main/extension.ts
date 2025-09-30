@@ -202,13 +202,15 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'payara.server.app.deploy',
-			uri => payaraServerInstanceController.deployApp(vscode.Uri.parse(uri), false)
+			arg =>  {
+				payaraServerInstanceController.deployApp(toVscodeUri(arg), false);
+			}
 		)
 	);
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'payara.server.app.debug',
-			uri => payaraServerInstanceController.deployApp(vscode.Uri.parse(uri), true)
+			uri => payaraServerInstanceController.deployApp(toVscodeUri(uri), true)
 		)
 	);
 	context.subscriptions.push(
@@ -378,6 +380,17 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
 	}
 
+	function toVscodeUri(arg: any): vscode.Uri | undefined {
+		if (!arg) 
+			return;
+		if (arg instanceof vscode.Uri) 
+			return arg;
+		if (arg._nodeData) {
+			// Java Projects Explorer
+			return vscode.Uri.parse(arg._nodeData.uri);
+		}
+		return undefined;
+	}
 }
 
 // this method is called when your extension is deactivated

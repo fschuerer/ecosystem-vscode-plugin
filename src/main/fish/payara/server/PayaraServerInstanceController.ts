@@ -48,6 +48,7 @@ import { PayaraRemoteServerInstance } from './PayaraRemoteServerInstance';
 import { PayaraLocalServerInstance } from './PayaraLocalServerInstance';
 import { PayaraServerTransformPlugin } from '../server/PayaraServerTransformPlugin';
 import { Maven } from '../project/Maven';
+import { runTests } from '@vscode/test-electron';
 
 export class PayaraServerInstanceController extends PayaraInstanceController {
 
@@ -818,7 +819,6 @@ export class PayaraServerInstanceController extends PayaraInstanceController {
     public deployApp(uri: Uri, debug: boolean,
         autoDeploy?: boolean, selectedServer?: PayaraServerInstance | undefined,
         metadataChanged?: boolean, sourcesChanged?: Uri[]) {
-
         const workspaceFolder = vscode.workspace.getWorkspaceFolder(uri);
         ProjectOutputWindowProvider.getInstance().updateStatusBar(`Deploying ${workspaceFolder?.name}`);
         let support = new DeploymentSupport(this);
