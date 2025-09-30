@@ -1,0 +1,33 @@
+{
+    "name": "VS Code Extension Development",
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
+    "mounts": [
+        "type=volume,source=devcontainer-commandhistory,target=/commandhistory",
+        "type=bind,source=/var/run/docker.sock,destination=/var/run/docker.sock",
+        "type=volume,source=dind-var-lib-docker,target=/var/lib/docker"
+    ],
+    "features": {
+        "ghcr.io/devcontainers/features/common-utils:2": {
+            "configureZshAsDefaultShell": true            
+        },
+        "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
+        "ghcr.io/devcontainers/features/java": {
+            "version": 21,
+            "installMaven": true
+        }
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "dbaeumer.vscode-eslint",
+                "esbenp.prettier-vscode",
+                "ms-vscode.vscode-typescript-next",
+                "ms-vscode.test-adapter-converter",
+                "vscjava.vscode-java-pack"
+            ]
+        }
+    },
+    "postCreateCommand": "npm install && npm install -g vsce"
+}
