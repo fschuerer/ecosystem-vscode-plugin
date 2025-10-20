@@ -31,8 +31,17 @@ export class BuildSupport {
         if(!workspace) {
             throw new Error("workspace not found for [" + uri.fsPath + "].");
         }
-        if(Maven.detect(workspace)){
-            return new Maven(payaraInstance, workspace);
+        if(Maven.detect(workspace) || Maven.detectWithUri(uri)){
+            if (Maven.detect(workspace)) {
+                return new Maven(payaraInstance, workspace);
+            } else if (Maven.detectWithUri(uri)) {
+                const mockFolder: vscode.WorkspaceFolder = {
+                    uri: uri,
+                    name: 'mock',
+                    index: 0
+                };
+                return new Maven(payaraInstance, mockFolder);
+            }
         } else if(Gradle.detect(workspace)){
             return new Gradle(payaraInstance, workspace);
         } else {

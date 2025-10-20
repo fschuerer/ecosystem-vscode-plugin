@@ -52,6 +52,11 @@ export class Maven implements Build {
         return fs.existsSync(pom);
     }
 
+    public static detectWithUri(uri: Uri): boolean {
+        let pom = path.join(uri.fsPath, 'pom.xml');
+        return fs.existsSync(pom);
+    }
+
     public buildProject(remote: boolean, type: string,
         callback: (artifact: string) => any,
         silent?: boolean): ChildProcess {
