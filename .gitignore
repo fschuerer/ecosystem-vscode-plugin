@@ -6,3 +6,4 @@ package-lock.json
 *.vsix
 .vscode-test/
 yarn-error.log
+upload-to-artifactory.sh
