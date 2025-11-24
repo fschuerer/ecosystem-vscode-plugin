@@ -134,13 +134,13 @@ export class PayaraRemoteServerInstance extends PayaraServerInstance {
     }
 
     public connectOutput(): void {
-        if (!this.job.running) {
+        if (!this.job.isActive) {
             this.job.start();
         }
     }
 
     public disconnectOutput(): void {
-        if (this.job.running) {
+        if (this.job.isActive) {
             this.job.stop();
         }
     }

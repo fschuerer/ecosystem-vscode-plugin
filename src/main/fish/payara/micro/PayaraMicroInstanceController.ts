@@ -94,7 +94,7 @@ export class PayaraMicroInstanceController extends PayaraInstanceController {
             }
             let homePage = payaraMicro.getHomePage();
             if (homePage !== undefined && !_.isEmpty(homePage)) {
-                open(homePage);
+                open.openApp(homePage);
             }
             return true;
         }
