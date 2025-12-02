@@ -22,7 +22,7 @@ import { ChildProcess } from 'child_process';
 import * as fs from "fs";
 import * as fse from "fs-extra";
 import * as _ from "lodash";
-import * as open from "open";
+import open from 'open';
 import * as path from "path";
 import * as tmp from "tmp";
 import { FileResult } from 'tmp';
@@ -787,7 +787,7 @@ export class PayaraServerInstanceController extends PayaraInstanceController {
     }
 
     public async openConsole(payaraServer: PayaraServerInstance): Promise<void> {
-        open.openApp(new URL(`http://${payaraServer.getHost()}:${payaraServer.getAdminPort()}`).toString());
+        open(new URL(`http://${payaraServer.getHost()}:${payaraServer.getAdminPort()}`).toString());
     }
 
     public async openLog(payaraServer: PayaraServerInstance): Promise<void> {
@@ -935,12 +935,12 @@ export class PayaraServerInstanceController extends PayaraInstanceController {
         if (application.getContextPath() === null) {
             vscode.window.showInformationMessage('Context path not found for the application: ' + application.name);
         } else if (application.getContextPath() === undefined) {
-            application.fetchContextPath(() => open.openApp(new URL(
+            application.fetchContextPath(() => open(new URL(
                 `http://${application.payaraServer.getHost()}:${application.payaraServer.getHttpPort()}`
                 + application.getContextPath()).toString()
             ));
         } else {
-            open.openApp(new URL(
+            open(new URL(
                 `http://${application.payaraServer.getHost()}:${application.payaraServer.getHttpPort()}`
                 + application.getContextPath()).toString()
             );
@@ -948,7 +948,7 @@ export class PayaraServerInstanceController extends PayaraInstanceController {
     }
 
     public openRestEndpoint(restEndpoint: RestEndpoint) {
-        open.openApp(new URL(
+        open(new URL(
             `http://${restEndpoint.application.payaraServer.getHost()}:${restEndpoint.application.payaraServer.getHttpPort()}`
             + restEndpoint.endpoint).toString()
         );
