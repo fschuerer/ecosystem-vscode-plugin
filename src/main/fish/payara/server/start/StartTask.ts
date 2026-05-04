@@ -34,7 +34,7 @@ import { PayaraLocalServerInstance } from "../PayaraLocalServerInstance";
 
 export class StartTask {
 
-    public startServer(payaraServer: PayaraLocalServerInstance, debug: boolean, debugPort: string): ChildProcess {
+    public startServer(payaraServer: PayaraLocalServerInstance, debug: boolean, debugPort: string | number | undefined): ChildProcess {
         let jvmConfigReader: JvmConfigReader = new JvmConfigReader(payaraServer.getDomainXmlPath(), ServerUtils.DAS_NAME);
 
         let javaHome: string | undefined = payaraServer.getJDKHome();
@@ -48,7 +48,14 @@ export class StartTask {
         let optList: Array<string> = new Array<string>();
 
         for (const jvmOption of jvmConfigReader.getJvmOptions()) {
-            if (JDKVersion.isCorrectJDK(javaVersion, jvmOption.vendor, jvmOption.minVersion, jvmOption.maxVersion)) {
+            if (JDKVersion.isCorrectJDK(
+                    javaVersion,
+                    jvmOption.vendor,
+                    jvmOption.minVersion,
+                    jvmOption.maxVersion,
+                    jvmOption.option,
+                    javaHome)) {
+
                 optList.push(jvmOption.option);
             }
         }
@@ -98,12 +105,16 @@ export class StartTask {
         return cp.spawn(javaVmExe, args, { cwd: payaraServer.getPath() });
     }
 
-    private isValidPort(portStr?: string): boolean {
-        if (!portStr) {
+    private isValidPort(portStr?: string | number): boolean {
+        if (portStr === undefined || portStr === null || portStr === '') {
             return false;
         }
-        const port = parseInt(portStr, 10);
-        return portStr.trim() !== '' && port >= 0 && port <= 65535;
+        const portString = String(portStr).trim();
+        if (portString === '') {
+            return false;
+        }
+        const port = parseInt(portString, 10);
+        return !isNaN(port) && port >= 0 && port <= 65535;
     }
 
     private addJavaAgent(payaraServer: PayaraLocalServerInstance, jvmConfigReader: JvmConfigReader): void {
@@ -165,7 +176,17 @@ export class StartTask {
             // do placeholder substitution
             opt = StringUtils.doSub(opt.trim(), varMap);
             let splitIndex: number = opt.indexOf('=');
-            if (splitIndex !== -1 && !opt.startsWith("-agentpath:")) {
+            if (splitIndex === -1) {
+                // No '=' found; check for known prefix with colon
+                let colonIndex = opt.indexOf(':');
+                if (colonIndex !== -1 && opt.startsWith("-Xbootclasspath/a:")) {
+                    name = opt.substring(0, colonIndex + 1) + StringUtils.quote(opt.substring(colonIndex + 1));
+                    value = null;
+                } else {
+                    name = opt;
+                    value = null;
+                }
+            } else if (!opt.startsWith("-agentpath:")) {
                 // key=value type of option
                 name = opt.substring(0, splitIndex);
                 value = StringUtils.quote(opt.substring(splitIndex + 1));

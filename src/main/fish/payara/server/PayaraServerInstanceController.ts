@@ -635,7 +635,7 @@ export class PayaraServerInstanceController extends PayaraInstanceController {
     }
 
 
-    public async startServer(payaraServer: PayaraLocalServerInstance, debug: boolean, debugPort: string, callback?: (status: boolean) => any): Promise<void> {
+    public async startServer(payaraServer: PayaraLocalServerInstance, debug: boolean, debugPort: string | number | undefined, callback?: (status: boolean) => any): Promise<void> {
         if (!payaraServer.isStopped()) {
             vscode.window.showErrorMessage('Payara Server instance already running.');
             return;
@@ -745,6 +745,25 @@ export class PayaraServerInstanceController extends PayaraInstanceController {
         });
     }
 
+    private async stopAndStartInDebugMode(payaraServer: PayaraLocalServerInstance, debugPort: string | number | undefined, callback?: (status: boolean) => any): Promise<void> {
+        let endpoints: RestEndpoints = new RestEndpoints(payaraServer);
+        endpoints.invoke("stop-domain", async (_res) => {
+            payaraServer.setState(InstanceState.STOPPED);
+            payaraServer.setDebug(false);
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            this.refreshServerList();
+            payaraServer.disconnectOutput();
+            this.startServer(payaraServer, true, debugPort, callback);
+        },
+            (_res, message) => {
+                vscode.window.showErrorMessage('Unable to stop the Payara Server before restarting in debug mode. ' + message);
+                if (callback) {
+                    callback(false);
+                }
+            }
+        );
+    }
+
     public async renameServer(payaraServer: PayaraServerInstance): Promise<void> {
         if (payaraServer) {
             await vscode.window.showInputBox({
@@ -848,7 +867,7 @@ export class PayaraServerInstanceController extends PayaraInstanceController {
                 if (server instanceof PayaraLocalServerInstance && !server.isStarted()) {
                     this.startServer(server, debug, debugPort, deploy);
                 } else if (server instanceof PayaraLocalServerInstance && debug && !server.isDebug()) {
-                    this.restartServer(server, debug, deploy);
+                    this.stopAndStartInDebugMode(server, debugPort, deploy);
                 } else {
                     deploy(true);
                 }
@@ -879,12 +898,19 @@ export class PayaraServerInstanceController extends PayaraInstanceController {
         } else if (servers.length === 1) {
             callback(servers[0]);
         } else {
-            vscode.window.showQuickPick(servers, {
-                placeHolder: 'Select the Payara Server',
-                canPickMany: false
-            }).then(value => {
-                if (value instanceof PayaraServerInstance) {
-                    callback(value);
+            vscode.window.showQuickPick(
+                servers.map(server => ({
+                    label: server.getName(),
+                    description: `${server.getDomainName()}}`,
+                    server: server
+                })),
+                {
+                    placeHolder: 'Select the Payara Server',
+                    canPickMany: false
+                }
+            ).then(item => {
+                if (item) {
+                    callback(item.server);
                 } else {
                     vscode.window.showErrorMessage('Please select the Payara Server.');
                 }
